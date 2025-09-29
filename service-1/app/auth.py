@@ -7,7 +7,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, WebSocket
 from pydantic import BaseModel
 
-from .env import PENDING_CONNECTIONS
+from .env import PENDING_MESSAGES
 from .types import (
     AuthRequest,
     AuthRequestData,
@@ -100,10 +100,10 @@ async def process_auth(
 @router.post("/result")
 async def receive_result(result: AuthResult):
     messageId = result.messageId
-    if messageId not in PENDING_CONNECTIONS:
+    if messageId not in PENDING_MESSAGES:
         raise HTTPException(status_code=404, detail="messageId not found")
 
-    ws_item = PENDING_CONNECTIONS[messageId]
+    ws_item = PENDING_MESSAGES[messageId]
     if result.statusCode == 200:
         success = True
         message_data = {
@@ -126,5 +126,5 @@ async def receive_result(result: AuthResult):
     )
     logger.info(f"{datetime.now()} {result.connectorId} {result.status}")
     await ws_item["websocket"].send_text(auth_response.json())
-    del PENDING_CONNECTIONS[messageId]
+    del PENDING_MESSAGES[messageId]
     return

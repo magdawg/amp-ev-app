@@ -9,7 +9,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from .auth import router as auth_router
 from .env import ACTIVE_CONNECTIONS
-from .utils import cleanup_pending
+from .utils import cleanup_pending_messages
 from .websocket import router as ws_router
 
 logging.basicConfig(level=logging.INFO)
@@ -33,4 +33,4 @@ async def get_connections():
 
 @app.on_event("startup")
 async def startup_event():
-    asyncio.create_task(cleanup_pending())
+    asyncio.create_task(cleanup_pending_messages())

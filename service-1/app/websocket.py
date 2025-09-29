@@ -8,7 +8,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, ValidationError
 
 from .auth import process_auth
-from .env import ACTIVE_CONNECTIONS, PENDING_CONNECTIONS
+from .env import ACTIVE_CONNECTIONS, PENDING_MESSAGES
 from .types import MessageType, WebsocketMessage, WebsocketResult
 
 logging.basicConfig(level=logging.INFO)
@@ -48,9 +48,9 @@ async def websocket_endpoint(websocket: WebSocket, charger_id: str):
 
                 if (
                     message.messageType == MessageType.ASYNC_AUTHORIZATION
-                    and message.messageId not in PENDING_CONNECTIONS.keys()
+                    and message.messageId not in PENDING_MESSAGES.keys()
                 ):
-                    PENDING_CONNECTIONS[message.messageId] = {
+                    PENDING_MESSAGES[message.messageId] = {
                         "websocket": websocket,
                         "created_at": datetime.now(),
                     }
