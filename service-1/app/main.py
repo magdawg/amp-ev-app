@@ -1,29 +1,27 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from typing import Dict
-import httpx
 import json
-import os
 import logging
+import os
+from typing import Dict
+
+import httpx
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+
+from .env import ACTIVE_CONNECTIONS
+from .websocket import router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="EV Charger Service")
 
-# Configuration
-SERVICE_2_URL = os.getenv("SERVICE_2_URL", "http://localhost:8000")
-
-# Store active connections
-active_connections: Dict[str, WebSocket] = {}
+app = FastAPI(title="EV Charger Service 1")
+app.include_router(router, prefix="/ws")
 
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "service-1"}
+    return {"status": "ok", "service": "service-1"}
 
 
-@app.websocket("/ws/{charger_id}")
-async def websocket_endpoint(websocket: WebSocket, charger_id: str):
-    await websocket.accept()
-    active_connections[charger_id] = websocket
-    logger.info(f"Charger {charger_id} connected")
+@app.get("/connections")
+async def get_connections():
+    return {"active_connections": list(ACTIVE_CONNECTIONS.keys())}
