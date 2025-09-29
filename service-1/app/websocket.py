@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from datetime import datetime
 
 import httpx
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -43,11 +44,17 @@ async def websocket_endpoint(websocket: WebSocket, charger_id: str):
                     continue
 
                 if message.messageType == MessageType.AUTHORIZATION:
-                    await process_auth(message, client, websocket)
+                    await process_auth(message, client, websocket, async_req=False)
 
-                if message.messageType == MessageType.ASYNC_AUTHORIZATION:
-                    PENDING_CONNECTIONS[message.messageId] = websocket
-                    await process_auth(message, client, websocket, async_req=True)
+                if (
+                    message.messageType == MessageType.ASYNC_AUTHORIZATION
+                    and message.messageId not in PENDING_CONNECTIONS.keys()
+                ):
+                    PENDING_CONNECTIONS[message.messageId] = {
+                        "websocket": websocket,
+                        "created_at": datetime.now(),
+                    }
+                    await process_auth(message, client, websocket)
 
     except WebSocketDisconnect:
         await remove_active_connection(charger_id)

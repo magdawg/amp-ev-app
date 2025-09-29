@@ -1,11 +1,10 @@
-import pytest
-import httpx
-from unittest.mock import AsyncMock, MagicMock
-
 import asyncio
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock
 
-from app.auth  import process_auth, WebsocketMessage, WebsocketResult
+import httpx
+import pytest
+from app.auth import WebsocketMessage, WebsocketResult, process_auth
 
 
 @pytest.mark.asyncio
@@ -14,22 +13,24 @@ async def test_process_auth_success(monkeypatch):
     message = WebsocketMessage(
         messageId="123",
         messageType="Async_Authorization",
-        messageData={"connectorId": "c-1", "token": "abc"}
+        messageData={"connectorId": "c-1", "token": "abc"},
     )
 
     # Fake response from service-2
     fake_response = MagicMock()
     fake_response.status_code = 200
-    fake_response.json.return_value = {"connectorId": "c-1", "status": "Queued"}
+    fake_response.json.return_value = {"connectorId": "c-1", "status": "Pending"}
 
     # Mock AsyncClient.post
     async def mock_post(*args, **kwargs):
         return fake_response
+
     client = MagicMock()
     client.post = AsyncMock(side_effect=mock_post)
 
     # Fake websocket
     sent_messages = []
+
     class FakeWebSocket:
         async def send_text(self, text):
             sent_messages.append(text)
@@ -43,7 +44,7 @@ async def test_process_auth_success(monkeypatch):
     assert len(sent_messages) == 1
     response = WebsocketResult.parse_raw(sent_messages[0])
     assert response.success is True
-    assert response.messageData["status"] == "Queued"
+    assert response.messageData["status"] == "Pending"
 
 
 @pytest.mark.asyncio
@@ -52,7 +53,7 @@ async def test_process_auth_http_error(monkeypatch):
     message = WebsocketMessage(
         messageId="456",
         messageType="Async_Authorization",
-        messageData={"connectorId": "c-2", "token": "def"}
+        messageData={"connectorId": "c-2", "token": "def"},
     )
 
     fake_response = MagicMock()
@@ -61,10 +62,12 @@ async def test_process_auth_http_error(monkeypatch):
 
     async def mock_post(*args, **kwargs):
         return fake_response
+
     client = MagicMock()
     client.post = AsyncMock(side_effect=mock_post)
 
     sent_messages = []
+
     class FakeWebSocket:
         async def send_text(self, text):
             sent_messages.append(text)
@@ -87,15 +90,17 @@ async def test_process_auth_connection_error(monkeypatch):
     message = WebsocketMessage(
         messageId="789",
         messageType="Async_Authorization",
-        messageData={"connectorId": "c-3", "token": "ghi"}
+        messageData={"connectorId": "c-3", "token": "ghi"},
     )
 
     async def mock_post(*args, **kwargs):
         raise httpx.RequestError("boom")
+
     client = MagicMock()
     client.post = AsyncMock(side_effect=mock_post)
 
     sent_messages = []
+
     class FakeWebSocket:
         async def send_text(self, text):
             sent_messages.append(text)

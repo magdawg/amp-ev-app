@@ -15,4 +15,5 @@ class AuthResult(BaseModel):
     messageId: str
     statusCode: int
     status: str
+    authorized: bool
     connectorId: str | None = None

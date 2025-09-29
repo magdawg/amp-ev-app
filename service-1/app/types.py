@@ -16,7 +16,6 @@ class WebsocketMessage(BaseModel):
 
 class WebsocketResult(BaseModel):
     messageId: str
-    success: bool
     messageData: dict
 
 
@@ -34,4 +33,5 @@ class AuthResult(BaseModel):
     messageId: str
     statusCode: int
     status: str
+    authorized: bool
     connectorId: str | None = None

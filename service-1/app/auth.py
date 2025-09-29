@@ -28,7 +28,7 @@ async def process_auth(
     message: WebsocketMessage,
     client: httpx.AsyncClient,
     websocket: WebSocket,
-    async_req: bool = False,
+    async_req: bool = True,
 ):
     request_payload = AuthRequest(
         messageId=message.messageId,
@@ -37,30 +37,58 @@ async def process_auth(
             token=message.messageData.get("token"),
         ),
     )
-    auth_url = f"{SERVICE_2_URL}/authorize-async" if async_req else f"{SERVICE_2_URL}/authorize"
+    auth_url = (
+        f"{SERVICE_2_URL}/authorize-async"
+        if async_req
+        else f"{SERVICE_2_URL}/authorize"
+    )
     try:
         result = await client.post(auth_url, json=request_payload.dict(), timeout=10.0)
+        result_serialized = AuthResult(**result.json())
     except httpx.RequestError as e:
         logger.error("Error connecting to service-2", exc_info=True)
         auth_response = WebsocketResult(
             messageId=message.messageId,
-            success=False,
-            messageData={"error": "service-2-unavailable", "errorCode": 503},
+            messageData={
+                "authorized": False,
+                "error": "service-2-unavailable",
+                "errorCode": 503,
+            },
+        )
+        await websocket.send_text(auth_response.json())
+        return
+    except ValidationError as e:
+        logger.error("Invalid response from service-2", exc_info=True)
+        auth_response = WebsocketResult(
+            messageId=message.messageId,
+            messageData={
+                "authorized": False,
+                "error": "invalid-response",
+                "errorCode": 502,
+            },
         )
         await websocket.send_text(auth_response.json())
         return
 
-    if result.status_code in (200, 202,):
-        message_data = result.json()
+    if result.status_code in (
+        200,
+        202,
+    ):
+        message_data = {
+            "authorized": result_serialized.authorized,
+            "statusCode": result_serialized.statusCode,
+            "status": result_serialized.status,
+            "connectorId": result_serialized.connectorId,
+        }
     else:
         message_data = {
+            "authorized": False,
             "error": result.json().get("detail"),
             "errorCode": result.status_code,
         }
 
     auth_response = WebsocketResult(
         messageId=message.messageId,
-        success=True,
         messageData=message_data,
     )
     logger.info(
@@ -75,25 +103,28 @@ async def receive_result(result: AuthResult):
     if messageId not in PENDING_CONNECTIONS:
         raise HTTPException(status_code=404, detail="messageId not found")
 
-    ws = PENDING_CONNECTIONS[messageId]
+    ws_item = PENDING_CONNECTIONS[messageId]
     if result.statusCode == 200:
         success = True
         message_data = {
-            "messageId": messageId,
+            "authorized": True,
             "statusCode": result.statusCode,
             "status": result.status,
             "connectorId": result.connectorId,
         }
     else:
         success = False
-        message_data = {"error": result.status, "errorCode": result.statusCode}
+        message_data = {
+            "authorized": False,
+            "error": result.status,
+            "errorCode": result.statusCode,
+        }
 
     auth_response = WebsocketResult(
         messageId=messageId,
-        success=True,
         messageData=message_data,
     )
     logger.info(f"{datetime.now()} {result.connectorId} {result.status}")
-    await ws.send_text(auth_response.json())
+    await ws_item["websocket"].send_text(auth_response.json())
     del PENDING_CONNECTIONS[messageId]
     return

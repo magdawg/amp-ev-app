@@ -8,4 +8,4 @@ async def validate_credentials(token: str, connector_id: str) -> (int, str):
     if SECRETS[connector_id] != token:
         return 401, "Unauthorized"
 
-    return 200, "Authorized"
+    return 200, "Success"

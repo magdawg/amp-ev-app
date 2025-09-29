@@ -37,6 +37,7 @@ async def authorize(req: AuthRequest):
         connectorId=req.messageData.connectorId,
         statusCode=status_code,
         status=status,
+        authorized=True,
     )
 
 
@@ -55,6 +56,7 @@ async def authorize_async(req: AuthRequest):
                 statusCode=status_code,
                 status=status,
                 connectorId=req.messageData.connectorId,
+                authorized=False,
             )
 
         result = AuthResult(
@@ -62,6 +64,7 @@ async def authorize_async(req: AuthRequest):
             statusCode=status_code,
             status=status,
             connectorId=req.messageData.connectorId,
+            authorized=True,
         )
         async with httpx.AsyncClient() as client:
             try:
@@ -73,6 +76,7 @@ async def authorize_async(req: AuthRequest):
     return AuthResult(
         messageId=req.messageId,
         statusCode=202,
-        status="Queued",
+        status="Pending",
         connectorId=req.messageData.connectorId,
+        authorized=False,
     )

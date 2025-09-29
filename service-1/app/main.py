@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -8,6 +9,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from .auth import router as auth_router
 from .env import ACTIVE_CONNECTIONS
+from .utils import cleanup_pending
 from .websocket import router as ws_router
 
 logging.basicConfig(level=logging.INFO)
@@ -27,3 +29,8 @@ async def health_check():
 @app.get("/connections")
 async def get_connections():
     return {"active_connections": list(ACTIVE_CONNECTIONS.keys())}
+
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(cleanup_pending())
