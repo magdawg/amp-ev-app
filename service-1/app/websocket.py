@@ -13,7 +13,6 @@ from .types import MessageType, WebsocketMessage, WebsocketResult
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-SERVICE_2_URL = os.getenv("SERVICE_2_URL", "http://service-2:8000")
 
 router = APIRouter()
 
