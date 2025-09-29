@@ -6,15 +6,17 @@ from typing import Dict
 import httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
+from .auth import router as auth_router
 from .env import ACTIVE_CONNECTIONS
-from .websocket import router
+from .websocket import router as ws_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 app = FastAPI(title="EV Charger Service 1")
-app.include_router(router, prefix="/ws")
+app.include_router(ws_router, prefix="/ws")
+app.include_router(auth_router, prefix="/auth")
 
 
 @app.get("/health")

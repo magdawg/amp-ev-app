@@ -1,5 +1,5 @@
 from fastapi import WebSocket
 
-PENDING: dict[str, WebSocket] = {}
+PENDING_CONNECTIONS: dict[str, WebSocket] = {}
 
 ACTIVE_CONNECTIONS: dict[str, WebSocket] = {}

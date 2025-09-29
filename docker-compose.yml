@@ -16,6 +16,8 @@ services:
     container_name: ev-service-2
     ports:
       - "8000:8000"
+    environment:
+      - SERVICE_1_CALLBACK_URL=http://service-1:8765/auth/result
     networks:
       - ev-network
 
