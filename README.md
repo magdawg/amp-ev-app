@@ -15,3 +15,5 @@ And start sending requests like
     }
 }
 ```
+
+See API docs at http://0.0.0.0:8765/docs and http://0.0.0.0:8000/docs
