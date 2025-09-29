@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import os
-from time import sleep
 
 import httpx
 from fastapi import FastAPI, HTTPException
@@ -25,7 +24,7 @@ async def health_check():
 
 @app.post("/authorize", status_code=200, response_model=AuthResult)
 async def authorize(req: AuthRequest):
-    sleep(6)  # Simulate processing delay
+    await asyncio.sleep(6)  # Simulate processing delay
 
     status_code, status = await validate_credentials(
         req.messageData.token, req.messageData.connectorId
@@ -64,9 +63,9 @@ async def authorize_async(req: AuthRequest):
             status=status,
             connectorId=req.messageData.connectorId,
         )
-        with httpx.Client() as client:
+        async with httpx.AsyncClient() as client:
             try:
-                result = client.post(CALLBACK_URL, json=result.dict())
+                await client.post(CALLBACK_URL, json=result.dict())
             except httpx.RequestError as e:
                 logger.error("Error sending callback to service-1", exc_info=True)
 

@@ -1,8 +1,6 @@
 import json
 import logging
 import os
-from datetime import datetime
-from enum import Enum
 
 import httpx
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -20,7 +18,7 @@ SERVICE_2_URL = os.getenv("SERVICE_2_URL", "http://service-2:8000")
 router = APIRouter()
 
 
-def remove_active_connection(charger_id: str):
+async def remove_active_connection(charger_id: str):
     if charger_id in ACTIVE_CONNECTIONS:
         del ACTIVE_CONNECTIONS[charger_id]
 
@@ -53,8 +51,8 @@ async def websocket_endpoint(websocket: WebSocket, charger_id: str):
                     await process_auth(message, client, websocket, async_req=True)
 
     except WebSocketDisconnect:
-        remove_active_connection(charger_id)
+        await remove_active_connection(charger_id)
     except Exception:
         logger.error(f"Error with charger {charger_id}", exc_info=True)
-        remove_active_connection(charger_id)
+        await remove_active_connection(charger_id)
         await websocket.close()

@@ -2,7 +2,6 @@ import json
 import logging
 import os
 from datetime import datetime
-from enum import Enum
 
 import httpx
 from fastapi import APIRouter, HTTPException, WebSocket
