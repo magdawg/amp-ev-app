@@ -1,0 +1,24 @@
+services:
+  service-1:
+    build: ./service-1
+    container_name: ev-service-1
+    ports:
+      - "8765:8765"
+    environment:
+      - SERVICE_2_URL=http://service-2:8000
+    depends_on:
+      - service-2
+    networks:
+      - ev-network
+
+  service-2:
+    build: ./service-2
+    container_name: ev-service-2
+    ports:
+      - "8000:8000"
+    networks:
+      - ev-network
+
+networks:
+  ev-network:
+    driver: bridge
