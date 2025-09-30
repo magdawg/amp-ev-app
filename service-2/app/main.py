@@ -67,8 +67,8 @@ async def authorize_async(req: AuthRequest):
         )
         async with httpx.AsyncClient() as client:
             try:
-                await client.post(CALLBACK_URL, json=result.dict())
-            except httpx.RequestError as e:
+                await client.post(CALLBACK_URL, json=result.model_dump_json())
+            except httpx.RequestError:
                 logger.error("Error sending callback to service-1", exc_info=True)
 
     asyncio.create_task(callback())

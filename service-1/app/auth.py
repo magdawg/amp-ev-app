@@ -41,7 +41,9 @@ async def process_auth(
         else f"{SERVICE_2_URL}/authorize"
     )
     try:
-        result = await client.post(auth_url, json=request_payload.dict(), timeout=10.0)
+        result = await client.post(
+            auth_url, json=request_payload.model_dump_json(), timeout=10.0
+        )
         result_json = result.json()
         result_serialized = AuthResult(**result_json)
     except httpx.RequestError:
