@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import httpx
 import pytest
+
 from app.auth import WebsocketMessage, WebsocketResult, process_auth
 
 

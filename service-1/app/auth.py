@@ -44,7 +44,8 @@ async def process_auth(
     )
     try:
         result = await client.post(auth_url, json=request_payload.dict(), timeout=10.0)
-        result_serialized = AuthResult(**result.json())
+        result_json = result.json()
+        result_serialized = AuthResult(**result_json)
     except httpx.RequestError as e:
         logger.error("Error connecting to service-2", exc_info=True)
         auth_response = WebsocketResult(
@@ -83,16 +84,17 @@ async def process_auth(
     else:
         message_data = {
             "authorized": False,
-            "error": result.json().get("detail"),
+            "error": result_json.get("detail"),
             "errorCode": result.status_code,
         }
+
+    logger.info(
+        f"{datetime.now()} {result_json.get('connectorId')} {result_json.get('status')}"
+    )
 
     auth_response = WebsocketResult(
         messageId=message.messageId,
         messageData=message_data,
-    )
-    logger.info(
-        f"{datetime.now()} {result.json().get('connectorId')} {result.json().get('status')}"
     )
     await websocket.send_text(auth_response.json())
 
@@ -103,7 +105,6 @@ async def receive_result(result: AuthResult):
     if messageId not in PENDING_MESSAGES:
         raise HTTPException(status_code=404, detail="messageId not found")
 
-    ws_item = PENDING_MESSAGES[messageId]
     if result.statusCode == 200:
         success = True
         message_data = {
@@ -120,11 +121,13 @@ async def receive_result(result: AuthResult):
             "errorCode": result.statusCode,
         }
 
+    logger.info(f"{datetime.now()} {result.connectorId} {result.status}")
+
     auth_response = WebsocketResult(
         messageId=messageId,
         messageData=message_data,
     )
-    logger.info(f"{datetime.now()} {result.connectorId} {result.status}")
-    await ws_item["websocket"].send_text(auth_response.json())
+    pending_msg_websocket = PENDING_MESSAGES[messageId]["websocket"]
+    await pending_msg_websocket.send_text(auth_response.json())
     del PENDING_MESSAGES[messageId]
     return
