@@ -1,7 +1,7 @@
 import logging
 import os
 from datetime import datetime
-
+from pydantic import ValidationError
 import httpx
 from fastapi import APIRouter, HTTPException, WebSocket
 
@@ -44,7 +44,7 @@ async def process_auth(
         result = await client.post(auth_url, json=request_payload.dict(), timeout=10.0)
         result_json = result.json()
         result_serialized = AuthResult(**result_json)
-    except httpx.RequestError as e:
+    except httpx.RequestError:
         logger.error("Error connecting to service-2", exc_info=True)
         auth_response = WebsocketResult(
             messageId=message.messageId,
@@ -56,7 +56,7 @@ async def process_auth(
         )
         await websocket.send_text(auth_response.json())
         return
-    except ValidationError as e:
+    except ValidationError:
         logger.error("Invalid response from service-2", exc_info=True)
         auth_response = WebsocketResult(
             messageId=message.messageId,
@@ -104,7 +104,6 @@ async def receive_result(result: AuthResult):
         raise HTTPException(status_code=404, detail="messageId not found")
 
     if result.statusCode == 200:
-        success = True
         message_data = {
             "authorized": True,
             "statusCode": result.statusCode,
@@ -112,7 +111,6 @@ async def receive_result(result: AuthResult):
             "connectorId": result.connectorId,
         }
     else:
-        success = False
         message_data = {
             "authorized": False,
             "error": result.status,

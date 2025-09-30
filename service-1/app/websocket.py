@@ -34,9 +34,11 @@ async def websocket_endpoint(websocket: WebSocket, charger_id: str):
                     data = json.loads(raw)
                     message = WebsocketMessage(**data)
                 except json.JSONDecodeError:
+                    logger.error("Error decoding JSON", exc_info=True)
                     await websocket.send_text(json.dumps({"error": "invalid-json"}))
                     continue
-                except ValidationError as e:
+                except ValidationError:
+                    logger.error("Error validating message", exc_info=True)
                     await websocket.send_text(
                         json.dumps({"error": "unsupported-messageType"})
                     )
