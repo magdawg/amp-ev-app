@@ -54,7 +54,7 @@ async def process_auth(
                 "errorCode": 503,
             },
         )
-        await websocket.send_text(auth_response.json())
+        await websocket.send_text(auth_response.model_dump_json())
         return
     except ValidationError:
         logger.error("Invalid response from service-2", exc_info=True)
@@ -66,7 +66,7 @@ async def process_auth(
                 "errorCode": 502,
             },
         )
-        await websocket.send_text(auth_response.json())
+        await websocket.send_text(auth_response.model_dump_json())
         return
 
     if result.status_code in (
@@ -87,14 +87,14 @@ async def process_auth(
         }
 
     logger.info(
-        f"{datetime.now()} {result_json.get('connectorId')} {result_json.get('status')}"
+        f"{datetime.now()} {result_serialized.connectorId} {result_serialized.status}"
     )
 
     auth_response = WebsocketResult(
         messageId=message.messageId,
         messageData=message_data,
     )
-    await websocket.send_text(auth_response.json())
+    await websocket.send_text(auth_response.model_dump_json())
 
 
 @router.post("/result")
@@ -124,6 +124,6 @@ async def receive_result(result: AuthResult):
         messageData=message_data,
     )
     pending_msg_websocket = PENDING_MESSAGES[messageId]["websocket"]
-    await pending_msg_websocket.send_text(auth_response.json())
+    await pending_msg_websocket.send_text(auth_response.model_dump_json())
     del PENDING_MESSAGES[messageId]
     return

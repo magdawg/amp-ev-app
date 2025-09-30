@@ -22,7 +22,7 @@ async def cleanup_pending_messages():
                 messageId=message_id,
                 messageData={"authorized": False, "error": "Timeout", "errorCode": 408},
             )
-            await ws.send_text(auth_response.json())
+            await ws.send_text(auth_response.model_dump_json())
             del PENDING_MESSAGES[message_id]
 
         await asyncio.sleep(5)  # check every 5 seconds
