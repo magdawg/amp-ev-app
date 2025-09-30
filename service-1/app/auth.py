@@ -42,7 +42,7 @@ async def process_auth(
     )
     try:
         result = await client.post(
-            auth_url, json=request_payload.model_dump_json(), timeout=10.0
+            auth_url, json=request_payload.model_dump(), timeout=10.0
         )
         result_json = result.json()
         result_serialized = AuthResult(**result_json)

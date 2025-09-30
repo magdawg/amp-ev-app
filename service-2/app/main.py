@@ -67,7 +67,7 @@ async def authorize_async(req: AuthRequest):
         )
         async with httpx.AsyncClient() as client:
             try:
-                await client.post(CALLBACK_URL, json=result.model_dump_json())
+                await client.post(CALLBACK_URL, json=result.model_dump())
             except httpx.RequestError:
                 logger.error("Error sending callback to service-1", exc_info=True)
 
