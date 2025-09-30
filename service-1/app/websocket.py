@@ -1,15 +1,14 @@
 import json
 import logging
-import os
 from datetime import datetime
 
 import httpx
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from .auth import process_auth
 from .env import ACTIVE_CONNECTIONS, PENDING_MESSAGES
-from .types import MessageType, WebsocketMessage, WebsocketResult
+from .types import MessageType, WebsocketMessage
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -1,11 +1,7 @@
 import asyncio
-import json
 import logging
-import os
-from typing import Dict
 
-import httpx
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI
 
 from .auth import router as auth_router
 from .env import ACTIVE_CONNECTIONS

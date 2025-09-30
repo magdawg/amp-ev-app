@@ -1,11 +1,9 @@
-import json
 import logging
 import os
 from datetime import datetime
 
 import httpx
 from fastapi import APIRouter, HTTPException, WebSocket
-from pydantic import BaseModel
 
 from .env import PENDING_MESSAGES
 from .types import (

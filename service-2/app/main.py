@@ -4,7 +4,6 @@ import os
 
 import httpx
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 
 from .auth import validate_credentials
 from .types import AuthRequest, AuthResult
